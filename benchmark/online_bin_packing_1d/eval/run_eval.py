@@ -1,4 +1,4 @@
-# EoH imlpementation
+# Modification of EoH implementation
 # Repo: https://github.com/FeiLiu36/EoH
 
 # -------
