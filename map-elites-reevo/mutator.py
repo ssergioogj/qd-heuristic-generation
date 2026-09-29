@@ -18,6 +18,9 @@ class ASTMutator(ast.NodeTransformer):
 
         # TODO: Allow all ops?
         self.__VALID_OPS = [ast.Eq, ast.NotEq, ast.Gt, ast.GtE, ast.Lt, ast.LtE, ast.In, ast.NotIn, ast.Is, ast.IsNot]
+        
+        # Valid funcs
+        self.__VALID_FUNCS = ['exp', 'log1p', 'sqrt', 'abs']
 
     def visit_Constant(self, node):
         """
@@ -58,6 +61,30 @@ class ASTMutator(ast.NodeTransformer):
 
         return node
 
+    def wrap_expr(self, node):
+        """
+        Applies a mutation wrapping an expression into a non-linear function
+        """
+
+        if rd.random() < self.__p_struct_mut:
+            random_func = rd.choice(self.__VALID_FUNCS)
+
+            # Wrap the node with abs when non-linear function does not allow negative number
+            arg = node if random_func not in ['log1p', 'sqrt'] else ast.Call(
+                func = ast.Attribute(value=ast.Name(id='np', ctx=ast.Load()), attr='abs', ctx=ast.Load()),
+                args = [node],
+                keywords = []
+            )
+
+            # Wrap the node in the chosen function
+            call = ast.Call(
+                func = ast.Attribute(value=ast.Name(id='np', ctx=ast.Load()), attr=random_func, ctx=ast.Load()),
+                args = [arg],
+                keywords = []
+            )
+
+        return ast.copy_location(call, node) # Copy the location to Call
+
     @staticmethod
     def str_to_ast(node: GNode) -> ast.Module:
         """
@@ -66,7 +93,7 @@ class ASTMutator(ast.NodeTransformer):
         return ast.parse(node.heuristic)
 
     @staticmethod
-    def ast_to_string(tree: ast.Module) -> str:
+    def ast_to_str(tree: ast.Module) -> str:
         """
         Given an AST, returns its python implementation as a string
         """
