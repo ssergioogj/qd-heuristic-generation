@@ -2,18 +2,25 @@
 # The given heuristic is parsed into an AST and then mutated
 # Then is returned to heuristic code
 
-from node import GNode
+from gnode import GNode
 import ast
 import random as rd
 
 class ASTMutator(ast.NodeTransformer):
-    def __init__(self, p_param_mut: float = 0.3, p_struct_mut: float = 0.2, p_wrap_mut=0.2, p_expand_mut=0.2, sigma: float = 0.1, max_depth=4):
+    def __init__(self, p_param_mut: float = 0.3, p_struct_mut: float = 0.2, p_wrap_mut:float=0.2, p_expand_mut:float=0.2, sigma: float = 0.1, max_depth:int =4, available_vars:list = None):
         # Mutations are not mutually exclusive
         self.__p_param_mut = p_param_mut  # Probability of suffering a parametric mutation
         self.__p_struct_mut = p_struct_mut # Probability of suffering a structural mutation
         self.__p_wrap_mut = p_wrap_mut  # Probability of suffering a wrap mutation
         self.__p_expand_mut = p_expand_mut  # Probability of suffering a expansion mutation
         self.__sigma = sigma  # Standard desviation of the normal distribution used to generate random numbers
+
+        # Depth
+        self.__max_depth = max_depth
+        self.__current_depth = 0
+
+        # Variables of the problem
+        self.__available_vars = available_vars
 
         # Valid ops
         self.__VALID_OP = [ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Mod, ast.Pow, ast.FloorDiv]
@@ -47,6 +54,9 @@ class ASTMutator(ast.NodeTransformer):
         # Mutate the operator
         if rd.random() < self.__p_struct_mut:
             node.op = rd.choice(self.__VALID_OP)()
+
+        if self.__current_depth < self.__max_depth and rd.random() < self.__p_wrap_mut:
+            return self.wrap_expr(node)
 
         return node
 
@@ -98,14 +108,14 @@ class ASTMutator(ast.NodeTransformer):
 
         return ast.copy_location(call, node) # Copy the location to Call
 
-    def expand_tree(self, node, available_vars):
+    def expand_tree(self, node):
         """
         Expands the tree applying a mutation with the form: xi -> xi (operator) (operand)
         """
 
         # Choose operand and operator
         op = rd.choice(self.__VALID_OP)
-        operand = ast.Name(id=rd.choice(available_vars), ctx=ast.Load()) if rd.random() < 0.5 and available_vars else ast.Constant(value=round(rd.uniform(0.1, 2.0), 2))
+        operand = ast.Name(id=rd.choice(self.__available_vars), ctx=ast.Load()) if rd.random() < 0.5 and self.__available_vars else ast.Constant(value=round(rd.uniform(0.1, 2.0), 2))
 
         # Insert operation
         new_operation = ast.BinOp(

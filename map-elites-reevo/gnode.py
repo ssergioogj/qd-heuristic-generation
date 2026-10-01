@@ -4,5 +4,7 @@ from dataclasses import dataclass
 
 @dataclass
 class GNode:
+    # TODO: Add the genotype AST
     heuristic: str
-    score: float
+    # score: float
+    # genotype: ast.Module
