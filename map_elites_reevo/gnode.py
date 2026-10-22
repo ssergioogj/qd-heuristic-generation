@@ -7,7 +7,7 @@ from typing import Optional
 class GNode:
     # TODO: Add the genotype AST
     heuristic: str
-    # fitness: float = -float('inf')
+    fitness: float = -float('inf')
     reflection: Optional[str] = None
     # generation: int = 0
     # genotype: ast.Module

@@ -2,8 +2,8 @@
 # Short term reflection: Reflection of two heuristic (where the fitness is better in one of them, the better parent)
 # Long term reflection: Reflection of an elite heuristic based on a collection of long-term reflections and newly added short ones
 
-from llm.llm_client import LLMClient
-from gnode import GNode
+from map_elites_reevo.llm.llm_client import LLMClient
+from map_elites_reevo.gnode import GNode
 
 import re
 
