@@ -40,7 +40,8 @@ better_node = GNode(heuristic=better_h, fitness=-2.1)
 elite_node = GNode(heuristic=elite_h, fitness=-0.55)
 
 ref = reevo_op.short_term_reflection(worse=worse_node, better=better_node)
+print(f"Reflection: {ref}")
 
 crossover = reevo_op.crossover(worse_node, better_node, ref)
-
+print("Heuristic:")
 print(crossover)
