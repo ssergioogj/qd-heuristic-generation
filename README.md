@@ -17,7 +17,9 @@ Discovering effective heuristics for complex combinatorial search spaces is trad
 - Benchmark automatically generated heuristics against standard algorithms and baselines.
 
 ## Project Structure
+## Project Structure
 
+```text
 qd-heuristic-generation/
 ├── benchmark/
 │   ├── online_bin_packing_1d/     # 1D Online Bin Packing benchmark (EoH-based)
@@ -28,8 +30,9 @@ qd-heuristic-generation/
 │   ├── reevo/                     # ReEvo core evolutionary loop
 │   ├── evaluator.py               # Performance and runtime evaluation pipeline
 │   ├── gnode.py                   # Graph-based node representation for MAP-Elites
-│   ├── map_elites.py              # Core MAP-Elites 
+│   ├── map_elites.py              # Core MAP-Elites
 │   ├── mutator.py                 # Local search and mutation operators
 │   └── test_mutator.py            # Temp tests for mutation operators
 ├── .gitignore
 └── README.md
+```
