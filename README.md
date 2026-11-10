@@ -8,8 +8,6 @@ Automating heuristic discovery for NP-hard combinatorial optimization problems u
 
 > **Note:** This repository corresponds to my Undergraduate Bachelor's Thesis (TFG) in Computer Science and Engineering at Universidad Carlos III de Madrid (UC3M) and is currently **in progress**.
 
----
-
 ## Overview
 
 Discovering effective heuristics for complex combinatorial search spaces is traditionally a manual, domain-specific task. This project explores the use of illumination algorithms (**MAP-Elites**) augmented with a memetic local search based on ReEvo to:
@@ -18,3 +16,20 @@ Discovering effective heuristics for complex combinatorial search spaces is trad
 - Overcome deceptive fitness landscapes in NP-hard combinatorial spaces.
 - Benchmark automatically generated heuristics against standard algorithms and baselines.
 
+## Project Structure
+
+qd-heuristic-generation/
+├── benchmark/
+│   ├── online_bin_packing_1d/     # 1D Online Bin Packing benchmark (EoH-based)
+│   └── utils/
+│       └── visualizer.py          # Metric visualization
+├── map_elites_reevo/
+│   ├── llm/                       # LLM client interface for prompt-driven search
+│   ├── reevo/                     # ReEvo core evolutionary loop
+│   ├── evaluator.py               # Performance and runtime evaluation pipeline
+│   ├── gnode.py                   # Graph-based node representation for MAP-Elites
+│   ├── map_elites.py              # Core MAP-Elites 
+│   ├── mutator.py                 # Local search and mutation operators
+│   └── test_mutator.py            # Temp tests for mutation operators
+├── .gitignore
+└── README.md
