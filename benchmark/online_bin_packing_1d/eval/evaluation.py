@@ -38,7 +38,7 @@ class Evaluation():
 
 
     # @funsearch.run
-    def evaluateGreedy(self,instances: dict,alg) -> float:
+    def evaluateGreedy(self,instances: dict, alg, profile_memory:bool = False) -> float:
 
         """Evaluate heuristic function on a set of online binpacking instances."""
         # List storing number of bins used for each instance.
@@ -56,8 +56,9 @@ class Evaluation():
             items = np.array(instance['items'])
 
             # Measure memory consumption
-            tracemalloc.start()
-            tracemalloc.reset_peak()
+            if profile_memory:
+                tracemalloc.start()
+                tracemalloc.reset_peak()
 
             # Measure time
             tstart = time.perf_counter()
@@ -72,18 +73,21 @@ class Evaluation():
 
             # Metrics
             t = time.perf_counter() - tstart
-            _, peak_mem = tracemalloc.get_traced_memory()
-            tracemalloc.stop()
+
+            if profile_memory:
+                _, peak_mem = tracemalloc.get_traced_memory()
+                tracemalloc.stop()
+                peak_memories.append(peak_mem)
 
             # If remaining capacity in a bin is equal to initial capacity, then it is
             # unused. Count number of used bins.
             num_bins.append((bins_packed != capacity).sum())
             exec_times.append(t)
-            peak_memories.append(peak_mem)
+                
             
         # Metrics per instance: score, execution time and memory consumption
         return {
                 "avg_num_bins": -np.mean(num_bins),
                 "avg_time_sec": np.mean(exec_times),
-                "avg_peak_mem_kb": np.mean(peak_memories),
+                "avg_peak_mem_kb": np.mean(peak_memories) if profile_memory else None,  
             }

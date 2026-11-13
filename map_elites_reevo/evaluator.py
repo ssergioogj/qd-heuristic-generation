@@ -1,4 +1,4 @@
-# Compute fitness of an heuristic running its code for a specific problem
+# Compute fitness of an heuristic running its code for a specific problem in runttime
 
 from benchmark.online_bin_packing_1d.eval.evaluation import Evaluation
 
@@ -6,8 +6,9 @@ import numpy as np
 import types
 
 class Evaluator:
-    def __init__(self, evaluator):
-        self.__evaluator = evaluator
+    def __init__(self, instances):
+        self.__instances = instances
+        self.__evaluator = Evaluation()
 
     def fitness(self, code_str: str):
         """
@@ -17,7 +18,7 @@ class Evaluator:
         try:
             # Create temporal module
             module = types.ModuleType("heuristic_module")
-            module.__dict__("np") = np
+            module.__dict__["np"] = np
 
             # Execute the code
             exec(code_str, module.__dict__)
@@ -25,7 +26,10 @@ class Evaluator:
             if "score" not in module.__dict__:
                 return -float("inf")
 
-            score = module.score
-
             # Evaluate the func in the benchmark
-            fitness = self.__benchmark.evaluatorGreedy()
+            metrics = self.__evaluator.evaluateGreedy(instances=self.__instances, alg=module)
+
+            return float(metrics["avg_num_bins"])
+
+        except Exception:
+            return -float("inf")

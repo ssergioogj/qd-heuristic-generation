@@ -98,7 +98,7 @@ for mod_name, disp in HEURISTICS:
             if mod_name == "baselines.heuristic_fun_search_best_performing": print(f"cap: {cap}, size: {size}")
             col_key = f'{size}_c{cap}'
             dataset = build_dataset(RAW[size], cap)
-            metrics = eva.evaluateGreedy(dataset, heuristic)
+            metrics = eva.evaluateGreedy(instances=dataset, alg=heuristic, profile_memory=True)
             avg_num_bins = -metrics["avg_num_bins"]
             avg_exec_time = metrics["avg_time_sec"]
             avg_mem = metrics["avg_peak_mem_kb"]
