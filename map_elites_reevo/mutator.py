@@ -7,7 +7,7 @@ import ast
 import random as rd
 
 class ASTMutator(ast.NodeTransformer):
-    def __init__(self, p_param_mut: float = 0.3, p_struct_mut: float = 0.2, p_wrap_mut:float=0.2, p_expand_mut:float=0.2, sigma: float = 0.1, max_depth:int =4, available_vars:list = None):
+    def __init__(self, p_param_mut: float = 0.3, p_struct_mut: float = 0.2, p_wrap_mut:float=0.2, p_expand_mut:float=0.2, sigma: float = 0.1, max_depth:int =6, available_vars:list = None):
         # Mutations are not mutually exclusive
         self.__p_param_mut = p_param_mut  # Probability of suffering a parametric mutation
         self.__p_struct_mut = p_struct_mut # Probability of suffering a structural mutation
@@ -26,10 +26,17 @@ class ASTMutator(ast.NodeTransformer):
         self.__VALID_OP = [ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Mod, ast.Pow, ast.FloorDiv]
 
         # TODO: Allow all ops?
-        self.__VALID_OPS = [ast.Eq, ast.NotEq, ast.Gt, ast.GtE, ast.Lt, ast.LtE, ast.In, ast.NotIn, ast.Is, ast.IsNot]
+        self.__VALID_OPS = [ast.Eq, ast.NotEq, ast.Gt, ast.GtE, ast.Lt, ast.LtE]
         
         # Valid funcs
         self.__VALID_FUNCS = ['exp', 'log1p', 'sqrt', 'abs']
+
+    def visit(self, node):
+      self.__current_depth += 1
+      try:
+        return super().visit(node)
+      finally:
+        self.__current_depth -= 1
 
     def visit_Constant(self, node):
         """
@@ -43,6 +50,31 @@ class ASTMutator(ast.NodeTransformer):
 
         return node
 
+    def __protect_divisor(self, right_node: ast.AST) -> ast.AST:
+        """Transforms 'x' in `(np.abs(x) + 1e-6)` to avoid division by 0"""
+
+        if (
+          isinstance(right_node, ast.BinOp)
+          and isinstance(right_node.op, ast.Add)
+          and isinstance(right_node.right, ast.Constant)
+          and right_node.right.value == 1e-6
+        ):
+            return right_node
+
+        
+        abs_call = ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id="np", ctx=ast.Load()),
+                attr="abs",
+                ctx=ast.Load(),
+            ),
+            args=[right_node],
+            keywords=[],
+        )
+        return ast.BinOp(
+            left=abs_call, op=ast.Add(), right=ast.Constant(value=1e-6)
+        )
+    
     def visit_BinOp(self, node):
         """
         Applies a structural mutation of operators with a ´p_struct_param´ probability and returns an AST node
@@ -54,6 +86,9 @@ class ASTMutator(ast.NodeTransformer):
         # Mutate the operator
         if rd.random() < self.__p_struct_mut:
             node.op = rd.choice(self.__VALID_OP)()
+
+        if isinstance(node.op, (ast.Div, ast.FloorDiv)):
+            node.right = self.__protect_divisor(node.right)
 
         if self.__current_depth < self.__max_depth and rd.random() < self.__p_wrap_mut:
             return self.wrap_expr(node)
@@ -116,6 +151,9 @@ class ASTMutator(ast.NodeTransformer):
         # Choose operand and operator
         op = rd.choice(self.__VALID_OP)
         operand = ast.Name(id=rd.choice(self.__available_vars), ctx=ast.Load()) if rd.random() < 0.5 and self.__available_vars else ast.Constant(value=round(rd.uniform(0.1, 2.0), 2))
+
+        if op in (ast.Div, ast.FloorDiv)    :
+            operand = self.__protect_divisor(operand)
 
         # Insert operation
         new_operation = ast.BinOp(
